@@ -20,7 +20,7 @@ m=size(train.X,2);
 n=size(train.X,1);
 
 % Train logistic regression classifier using minFunc
-options = struct('MaxIter', 100);
+options = struct('MaxIter', 100, 'useMex',0);
 
 % First, we initialize theta to some small random values.
 theta = rand(n,1)*0.001;
@@ -53,4 +53,3 @@ fprintf('Training accuracy: %2.1f%%\n', 100*accuracy);
 % Print out accuracy on the test set.
 accuracy = binary_classifier_accuracy(theta,test.X,test.y);
 fprintf('Test accuracy: %2.1f%%\n', 100*accuracy);
-

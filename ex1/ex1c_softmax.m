@@ -49,10 +49,3 @@ fprintf('Training accuracy: %2.1f%%\n', 100*accuracy);
 % Print out test accuracy.
 accuracy = multi_classifier_accuracy(theta,test.X,test.y);
 fprintf('Test accuracy: %2.1f%%\n', 100*accuracy);
-
-
-% % for learning curves
-% global test
-% global train
-% test.err{end+1} = multi_classifier_accuracy(theta,test.X,test.y);
-% train.err{end+1} = multi_classifier_accuracy(theta,train.X,train.y);
