@@ -9,7 +9,8 @@ ei = [];
 % add common directory to your path for
 % minfunc and mnist data helpers
 addpath ../common;
-addpath(genpath('../common/minFunc_2012/minFunc'));
+addpath ../ex1;
+addpath(genpath('../common/minFunc_2012')); %/minFunc
 
 %% load mnist data
 [data_train, labels_train, data_test, labels_test] = load_preprocess_mnist();
@@ -19,6 +20,7 @@ addpath(genpath('../common/minFunc_2012/minFunc'));
 % the architecture specified below should produce  100% training accuracy
 % You should be able to try different network architectures by changing ei
 % only (no changes to the objective function code)
+check_gradient = false;
 
 % dimension of input features
 ei.input_dim = 784;
@@ -27,17 +29,28 @@ ei.output_dim = 10;
 % sizes of all hidden layers and the output layer
 ei.layer_sizes = [256, ei.output_dim];
 % scaling parameter for l2 weight regularization penalty
-ei.lambda = 0;
+ei.lambda = 0.05;
 % which type of activation function to use in hidden layers
 % feel free to implement support for only the logistic sigmoid function
-ei.activation_fun = 'logistic';
+ei.activation_fun = 'relu';
 
 %% setup random initial weights
 stack = initialize_weights(ei);
 params = stack2params(stack);
 
-%% setup minfunc options
-options = [];
+if(check_gradient)
+m = 300;
+X = data_train(:,1:m);
+y = labels_train(1:m);
+
+avg_abs_dev = grad_check(@supervised_dnn_cost, params, 100, ei,...
+                  X, y);
+             
+printf('Average absolute deviation for derivative check: %15g\n',avg_abs_dev);
+end;
+
+% setup minfunc options
+%options = [];
 options.display = 'iter';
 options.maxFunEvals = 1e6;
 options.Method = 'lbfgs';

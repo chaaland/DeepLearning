@@ -1,4 +1,4 @@
-function [f,g] = softmax_regression_vec(theta, X,y)
+function [f,g] = softmax_regression_vec(theta, X, y)
   %
   % Arguments:
   %   theta - A vector containing the parameter values to optimize.
@@ -26,7 +26,8 @@ function [f,g] = softmax_regression_vec(theta, X,y)
   %        Store the objective function value in 'f', and the gradient in 'g'.
   %        Before returning g, make sure you form it back into a vector with g=g(:);
   %
-%%% YOUR CODE HERE %%%
+  
+  %%% YOUR CODE HERE %%%
   predict = exp([theta, zeros(n, 1)]' * X);
   denom = sum(predict);
   prob = bsxfun(@rdivide, predict, denom);
