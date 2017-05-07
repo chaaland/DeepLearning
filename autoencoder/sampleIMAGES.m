@@ -4,12 +4,13 @@ function patches = sampleIMAGES()
 
 load IMAGES;    % load images from disk 
 
-patchsize = 8;  % we'll use 8x8 patches 
-numpatches = 10000;
+patch_sz = 8;  % we'll use 8x8 patches 
+num_patches = 10000;
+
 
 % Initialize patches with zeros.  Your code will fill in this matrix--one
 % column per patch, 10000 columns. 
-patches = zeros(patchsize*patchsize, numpatches);
+patches = zeros(patch_sz ^ 2, num_patches);
 
 %% ---------- YOUR CODE HERE --------------------------------------
 %  Instructions: Fill in the variable called "patches" using data 
@@ -24,7 +25,21 @@ patches = zeros(patchsize*patchsize, numpatches);
 %  patch corresponding to the pixels in the block (21,21) to (30,30) of
 %  Image 1
 
+[m, n, num_images] = size(IMAGES);
+rows_to_sample = randi(m - patch_sz - 1, num_patches, 1);
+cols_to_sample = randi(n - patch_sz - 1, num_patches, 1);
+im_to_sample = randi(num_images, num_patches, 1);
 
+for i = 1:num_patches
+  row_ind = rows_to_sample(i);
+  col_ind = cols_to_sample(i);
+  im_ind = im_to_sample(i);
+
+  sampled_patch = IMAGES(row_ind:row_ind + patch_sz - 1,...
+                         col_ind:col_ind + patch_sz - 1,...
+                         im_ind);
+  patches(:, i) = sampled_patch(:);                      
+end
 
 
 

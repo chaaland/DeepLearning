@@ -13,15 +13,16 @@
 %% STEP 0: Here we provide the relevant parameters values that will
 %  allow your sparse autoencoder to get good filters; you do not need to 
 %  change the parameters below.
-
 visibleSize = 8*8;   % number of input units 
 hiddenSize = 25;     % number of hidden units 
 sparsityParam = 0.01;   % desired average activation of the hidden units.
                      % (This was denoted by the Greek alphabet rho, which looks like a lower-case "p",
 		     %  in the lecture notes). 
-lambda = 0.0001;     % weight decay parameter       
+lambda = 0.0001;     % weight decay parameter   
+
 beta = 3;            % weight of sparsity penalty term       
 
+RANDOM_INIT = true;
 %%======================================================================
 %% STEP 1: Implement sampleIMAGES
 %
@@ -29,7 +30,7 @@ beta = 3;            % weight of sparsity penalty term
 %  display a random sample of 200 patches from the dataset
 
 patches = sampleIMAGES;
-display_network(patches(:,randi(size(patches,2),200,1)),8);
+display_network(patches(:,randi(size(patches,2), 200, 1)), 8);
 
 
 %  Obtain random parameters theta
@@ -62,8 +63,8 @@ theta = initializeParameters(hiddenSize, visibleSize);
 %  final submission of the visualized weights, please use parameters we 
 %  gave in Step 0 above.
 
-[cost, grad] = sparseAutoencoderCost(theta, visibleSize, hiddenSize, lambda, ...
-                                     sparsityParam, beta, patches);
+%[cost, grad] = sparseAutoencoderCost(theta, visibleSize, hiddenSize, lambda, ...
+%                                     sparsityParam, beta, patches);
 
 %%======================================================================
 %% STEP 3: Gradient Checking
@@ -75,24 +76,36 @@ theta = initializeParameters(hiddenSize, visibleSize);
 % First, lets make sure your numerical gradient computation is correct for a
 % simple function.  After you have implemented computeNumericalGradient.m,
 % run the following: 
-checkNumericalGradient();
 
 % Now we can use it to check your cost function and derivative calculations
 % for the sparse autoencoder.  
-numgrad = computeNumericalGradient( @(x) sparseAutoencoderCost(x, visibleSize, ...
-                                                  hiddenSize, lambda, ...
-                                                  sparsityParam, beta, ...
-                                                  patches), theta);
-
-% Use this to visually compare the gradients side by side
-disp([numgrad grad]); 
-
-% Compare numerically computed gradients with the ones obtained from backpropagation
-diff = norm(numgrad-grad)/norm(numgrad+grad);
-disp(diff); % Should be small. In our implementation, these values are
-            % usually less than 1e-9.
-
-            % When you got this working, Congratulations!!! 
+%numgrad = computeNumericalGradient( @(x) sparseAutoencoderCost(x, visibleSize, ...
+%                                                  hiddenSize, lambda, ...
+%                                                  sparsityParam, beta, ...
+%                                                  patches), theta);
+%
+%%%% Use this to visually compare the gradients side by side
+%%disp([numgrad grad]); 
+%W1 = reshape(numgrad(1:hiddenSize*visibleSize), hiddenSize, visibleSize);
+%W2 = reshape(numgrad(hiddenSize*visibleSize+1:2*hiddenSize*visibleSize), visibleSize, hiddenSize);
+%b1 = numgrad(2*hiddenSize*visibleSize+1:2*hiddenSize*visibleSize+hiddenSize);
+%b2 = numgrad(2*hiddenSize*visibleSize+hiddenSize+1:end);
+%
+%W1_actual = reshape(grad(1:hiddenSize*visibleSize), hiddenSize, visibleSize);
+%W2_actual = reshape(grad(hiddenSize*visibleSize+1:2*hiddenSize*visibleSize), visibleSize, hiddenSize);
+%b1_actual = grad(2*hiddenSize*visibleSize+1:2*hiddenSize*visibleSize+hiddenSize);
+%b2_actual = grad(2*hiddenSize*visibleSize+hiddenSize+1:end);
+%disp(1/numel(W1) * sum(sum((W1-W1_actual).^2)));
+%disp(1/numel(b1) * sum((b1-b1_actual).^2));
+%disp(1/numel(W2) * sum(sum((W2-W2_actual).^2)));
+%disp(1/numel(b2) * sum((b2-b2_actual).^2));
+%
+%%% Compare numerically computed gradients with the ones obtained from backpropagation
+%diff = norm(numgrad-grad)/norm(numgrad+grad);
+%disp(diff); % Should be small. In our implementation, these values are
+%            % usually less than 1e-9.
+%
+%            % When you got this working, Congratulations!!! 
 
 %%======================================================================
 %% STEP 4: After verifying that your implementation of
@@ -100,16 +113,22 @@ disp(diff); % Should be small. In our implementation, these values are
 %  autoencoder with minFunc (L-BFGS).
 
 %  Randomly initialize the parameters
+if(RANDOM_INIT)
 theta = initializeParameters(hiddenSize, visibleSize);
-
+else
+load('optimal_parameter.mat');
+theta = opttheta;
+end
 %  Use minFunc to minimize the function
-addpath minFunc/
+%addpath minFunc/
+addpath(genpath('../common/minFunc_2012')); %/minFunc
+
 options.Method = 'lbfgs'; % Here, we use L-BFGS to optimize our cost
                           % function. Generally, for minFunc to work, you
                           % need a function pointer with two outputs: the
                           % function value and the gradient. In our problem,
                           % sparseAutoencoderCost.m satisfies this.
-options.maxIter = 400;	  % Maximum number of iterations of L-BFGS to run 
+options.maxIter = 500;	  % Maximum number of iterations of L-BFGS to run 
 options.display = 'on';
 
 
@@ -118,11 +137,16 @@ options.display = 'on';
                                    lambda, sparsityParam, ...
                                    beta, patches), ...
                               theta, options);
+save('optimal_parameter.mat','opttheta');
 
 %%======================================================================
 %% STEP 5: Visualization 
 
 W1 = reshape(opttheta(1:hiddenSize*visibleSize), hiddenSize, visibleSize);
+W2 = reshape(numgrad(hiddenSize*visibleSize+1:2*hiddenSize*visibleSize), visibleSize, hiddenSize);
+b1 = numgrad(2*hiddenSize*visibleSize+1:2*hiddenSize*visibleSize+hiddenSize);
+b2 = numgrad(2*hiddenSize*visibleSize+hiddenSize+1:end);
+
 display_network(W1', 12); 
 
 print -djpeg weights.jpg   % save the visualization to a file 

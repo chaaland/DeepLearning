@@ -21,6 +21,7 @@ addpath(genpath('../common/minFunc_2012')); %/minFunc
 % You should be able to try different network architectures by changing ei
 % only (no changes to the objective function code)
 check_gradient = false;
+load_params = true;
 
 % dimension of input features
 ei.input_dim = 784;
@@ -29,14 +30,20 @@ ei.output_dim = 10;
 % sizes of all hidden layers and the output layer
 ei.layer_sizes = [256, ei.output_dim];
 % scaling parameter for l2 weight regularization penalty
-ei.lambda = 0.05;
+ei.lambda = 0.1;
 % which type of activation function to use in hidden layers
 % feel free to implement support for only the logistic sigmoid function
 ei.activation_fun = 'relu';
 
 %% setup random initial weights
+if(load_params)
+load("optimalParameters.mat");
+params = opt_params;
+else
 stack = initialize_weights(ei);
 params = stack2params(stack);
+end;
+
 
 if(check_gradient)
 m = 300;
@@ -51,7 +58,7 @@ end;
 
 % setup minfunc options
 %options = [];
-options.display = 'iter';
+options.display = 'full';
 options.maxFunEvals = 1e6;
 options.Method = 'lbfgs';
 
