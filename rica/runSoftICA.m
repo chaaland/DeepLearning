@@ -12,6 +12,8 @@ params.lambda = 0.0005; % sparsity cost
 params.numFeatures = 50; % number of filter banks to learn
 params.epsilon = 1e-2; % epsilon to use in square-sqrt nonlinearity
 
+CHECK_GRAD = true;
+
 % Load MNIST data set
 data = loadMNISTImages('../common/train-images-idx3-ubyte');
 
@@ -42,9 +44,13 @@ randTheta = randn(params.numFeatures,params.n)*0.01; % 1/sqrt(params.n);
 randTheta = randTheta ./ repmat(sqrt(sum(randTheta.^2,2)), 1, size(randTheta,2));
 randTheta = randTheta(:);
 
+%if(CHECK_GRAD)
+%  derivativeCheck(@(randTheta) softICACost(randTheta, patches, params), randTheta)
+% end;
 % optimize
 [opttheta, cost, exitflag] = minFunc( @(theta) softICACost(theta, x, params), randTheta, options); % Use x or xw
 
 % display result
 W = reshape(opttheta, params.numFeatures, params.n);
 display_network(W');
+print -djpeg ricaWeights.jpg   % save the visualization to a file 
