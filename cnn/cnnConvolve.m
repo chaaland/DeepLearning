@@ -35,7 +35,6 @@ convolvedFeatures = zeros(convDim, convDim, numFilters, numImages);
 %   (So to save time when testing, you should convolve with less images, as
 %   described earlier)
 
-
 for imageNum = 1:numImages
   % Obtain the image
     im = squeeze(images(:, :, imageNum));
@@ -61,7 +60,6 @@ for imageNum = 1:numImages
 
     convolvedImage += b(filterNum);
     convolvedImage = 1 ./ (1 + exp(-convolvedImage));
-    
     
     convolvedFeatures(:, :, filterNum, imageNum) = convolvedImage;
   end

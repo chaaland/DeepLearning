@@ -65,17 +65,21 @@ convDim = imageDim-filterDim+1; % dimension of convolved output
 outputDim = (convDim)/poolDim; % dimension of subsampled output
 
 % convDim x convDim x numFilters x numImages tensor for storing activations
-activations = zeros(convDim,convDim,numFilters,numImages);
+faster_activations = zeros(convDim,convDim,numFilters,numImages);
 
 % outputDim x outputDim x numFilters x numImages tensor for storing
 % subsampled activations
-activationsPooled = zeros(outputDim,outputDim,numFilters,numImages);
+faster_activationsPooled = zeros(outputDim,outputDim,numFilters,numImages);
 
-%%% YOUR CODE HERE %%%
+%activations = cnnConvolve(filterDim, numFilters, images, Wc, bc);
+%activationsPooled = cnnPool(poolDim, activations);
+
+faster_activations = faster_cnnConvolve(filterDim, numFilters, images, Wc, bc);
+faster_activationsPooled = faster_cnnPool(poolDim, faster_activations);
 
 % Reshape activations into 2-d matrix, hiddenSize x numImages,
 % for Softmax layer
-activationsPooled = reshape(activationsPooled,[],numImages);
+faster_activationsPooled = reshape(faster_activationsPooled,[],numImages);
 
 %% Softmax Layer
 %  Forward propagate the pooled activations calculated above into a
@@ -85,9 +89,10 @@ activationsPooled = reshape(activationsPooled,[],numImages);
 
 % numClasses x numImages for storing probability that each image belongs to
 % each class.
-probs = zeros(numClasses,numImages);
+probs = zeros(numClasses, numImages);
 
-%%% YOUR CODE HERE %%%
+scores = Wd * faster_activationsPooled + bd;
+[sigma, dSoftdScores, probs] = soft_max(scores, labels);
 
 %%======================================================================
 %% STEP 1b: Calculate Cost
@@ -97,7 +102,7 @@ probs = zeros(numClasses,numImages);
 
 cost = 0; % save objective into cost
 
-%%% YOUR CODE HERE %%%
+cost = -sum(sigma);
 
 % Makes predictions given probs and returns without backproagating errors.
 if pred
@@ -117,7 +122,26 @@ end;
 %  Use the kron function and a matrix of ones to do this upsampling 
 %  quickly.
 
-%%% YOUR CODE HERE %%%
+dLdout = -dSoftdScores;
+
+Wd_grad = dLdout * faster_activationsPooled.';
+bd_grad = sum(dLdout, 2);
+
+dLdactivationsPooled = Wd.' * dLdout;
+dLdactivationsPooled = reshape(dLdactivationsPooled, [outputDim, outputDim, numFilters, numImages]);
+for i = 1:numImages
+  im = squeeze(images(:,:,i));
+  pooled_grad = squeeze(dLdactivationsPooled(:,:,:,i));
+  a = faster_activations(:,:,:,i);
+  for j = 1:numFilters
+    dLdPool = (1 / poolDim^2) * kron(pooled_grad(:,:,j), ones(poolDim));
+    a_filter = a(:,:,j);
+    f = a_filter .* (1 - a_filter) .* dLdPool;
+    Wc_grad(:,:,j) += conv2(im, rot90(f,2), "valid");
+    bc_grad(j) += sum(sum(f));
+  end
+end
+  
 
 %%======================================================================
 %% STEP 1d: Gradient Calculation
@@ -131,5 +155,25 @@ end;
 
 %% Unroll gradient into grad vector for minFunc
 grad = [Wc_grad(:) ; Wd_grad(:) ; bc_grad(:) ; bd_grad(:)];
+end
 
+
+function [sigma, dSoftdScores, prob] = soft_max(class_scores, class_labels)
+sigma = [];
+dSoftdScores = [];
+K = max(class_scores);
+
+num = exp(class_scores - K);  % numerical stability
+denom = sum(num, 1);
+prob = num ./ denom;
+
+if(~isempty(class_labels))
+  indices = 1:size(class_labels, 1);
+  y = sub2ind(size(num), class_labels, indices(:));
+  sigma = log(prob(y));
+
+  one_hot_mat = zeros(size(num));
+  one_hot_mat(y) = 1;
+  dSoftdScores = (one_hot_mat - prob);
+end;
 end

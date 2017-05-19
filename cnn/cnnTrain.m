@@ -46,8 +46,8 @@ if DEBUG
     db_numFilters = 2;
     db_filterDim = 9;
     db_poolDim = 5;
-    db_images = images(:,:,1:10);
-    db_labels = labels(1:10);
+    db_images = images(:,:,1:100);
+    db_labels = labels(1:100);
     db_theta = cnnInitParams(imageDim,db_filterDim,db_numFilters,...
                 db_poolDim,numClasses);
     
@@ -70,7 +70,25 @@ if DEBUG
  
     assert(diff < 1e-9,...
         'Difference too large. Check your gradient computation again');
-    
+    outDim = (imageDim - db_filterDim + 1)/db_poolDim;
+    hiddenSize = outDim^2*db_numFilters;
+    indS = 1;
+    indE = db_filterDim^2*db_numFilters;
+    Wc_grad = reshape(grad(indS:indE),db_filterDim,db_filterDim,db_numFilters);
+    Wc_numerical = reshape(numGrad(indS:indE),db_filterDim,db_filterDim,db_numFilters);
+
+    indS = indE+1;
+    indE = indE+hiddenSize*numClasses;
+    Wd_grad = reshape(grad(indS:indE),numClasses,hiddenSize);
+    Wd_numerical = reshape(numGrad(indS:indE),numClasses,hiddenSize);
+
+    indS = indE+1;
+    indE = indE+db_numFilters;
+    bc_grad = grad(indS:indE);
+    bc_numerical = numGrad(indS:indE);
+
+    bd_grad = grad(indE+1:end);
+    bd_numerical = numGrad(indE+1:end);
 end;
 
 %%======================================================================
@@ -79,10 +97,13 @@ end;
 
 options.epochs = 3;
 options.minibatch = 256;
-options.alpha = 1e-1;
-options.momentum = .95;
+%options.alpha = 1e-1;
+options.alpha = 3e-4;
 
-opttheta = minFuncSGD(@(x,y,z) cnnCost(x,y,z,numClasses,filterDim,...
+%options.momentum = .95;
+options.momentum = .9;
+%load 'theta.mat'
+[opttheta, loss] = minFuncSGD(@(x,y,z) cnnCost(x,y,z,numClasses,filterDim,...
                       numFilters,poolDim),theta,images,labels,options);
 
 %%======================================================================
@@ -102,3 +123,6 @@ acc = sum(preds==testLabels)/length(preds);
 
 % Accuracy should be around 97.4% after 3 epochs
 fprintf('Accuracy is %f\n',acc);
+plot(1:size(loss,1), loss);
+grid on;
+print -jpg TrainingLoss.jpg

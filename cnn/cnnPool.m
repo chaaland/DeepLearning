@@ -17,7 +17,7 @@ convolvedDim = size(convolvedFeatures, 1);
 
 pooledFeatures = zeros(convolvedDim / poolDim, ...
         convolvedDim / poolDim, numFilters, numImages);
-
+        
 % Instructions:
 %   Now pool the convolved features in regions of poolDim x poolDim,
 %   to obtain the 
@@ -36,7 +36,7 @@ for imageNum = 1:numImages
   for filterNum = 1:numFilters
     imgftr = squeeze(imFilters(:,:,filterNum));
     pooled = conv2(imgftr, ones(poolDim) / elemsToAvg, "valid");
-    pooledFeatures(:, :, imageNum, filterNum) = pooled(1:poolDim:convolvedDim, 1:poolDim:convolvedDim);
+    pooledFeatures(:, :,filterNum, imageNum) = pooled(1:poolDim:convolvedDim, 1:poolDim:convolvedDim);
   end
 end
 end
