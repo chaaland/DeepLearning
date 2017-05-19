@@ -98,10 +98,9 @@ end;
 options.epochs = 3;
 options.minibatch = 256;
 %options.alpha = 1e-1;
-options.alpha = 3e-4;
+options.alpha = 1e-3;
 
-%options.momentum = .95;
-options.momentum = .9;
+options.momentum = .95;
 %load 'theta.mat'
 [opttheta, loss] = minFuncSGD(@(x,y,z) cnnCost(x,y,z,numClasses,filterDim,...
                       numFilters,poolDim),theta,images,labels,options);
@@ -124,5 +123,7 @@ acc = sum(preds==testLabels)/length(preds);
 % Accuracy should be around 97.4% after 3 epochs
 fprintf('Accuracy is %f\n',acc);
 plot(1:size(loss,1), loss);
+title("CNN Loss on MNIST data set")
+xlabel("Iteration");
 grid on;
 print -jpg TrainingLoss.jpg
