@@ -334,6 +334,7 @@ end
 % Output Log
 if verboseI
     fprintf('%10s %10s %15s %15s %15s\n','Iteration','FunEvals','Step Length','Function Val','Opt Cond');
+    fflush(stdout);
 end
 
 % Compute optimality of initial point

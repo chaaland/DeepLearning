@@ -346,6 +346,7 @@ end
 % Output Log
 if verboseI
     fprintf('%10s %10s %15s %15s %15s\n','Iteration','FunEvals','Step Length','Function Val','Opt Cond');
+    fflush(stdout);
 end
 
 if logfile
@@ -1070,6 +1071,7 @@ for i = 1:maxIter
     % Output iteration information
     if verboseI
         fprintf('%10d %10d %15.5e %15.5e %15.5e\n',i,funEvals*funEvalMultiplier,t,f,sum(abs(g)));
+        fflush(stdout);
     end
 
     if logfile
