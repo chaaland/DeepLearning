@@ -26,7 +26,6 @@ function [f,g] = softmax_regression_vec(theta, X, y)
   %        Store the objective function value in 'f', and the gradient in 'g'.
   %        Before returning g, make sure you form it back into a vector with g=g(:);
   %
-  
   predict = exp([theta, zeros(n, 1)]' * X);
   denom = sum(predict);
   prob = bsxfun(@rdivide, predict, denom);
